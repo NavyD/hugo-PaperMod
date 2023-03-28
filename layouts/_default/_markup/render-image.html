@@ -1,1 +1,12 @@
-<img loading="lazy" src="{{ .Destination | safeURL }}" alt="{{ .Text }}" {{ with .Title}} title="{{ . }}" {{ end }} />
+{{- $isHyperLink := findRE "^.+://.+" .Destination 1 | len | eq 1 -}}
+{{- $src_url := printf "%s%s" .Page.Permalink .Destination | cond $isHyperLink .Destination | safeURL -}}
+{{- $key := .Page.File.Path }}
+{{- $new := index (.Page.Store.Get "page_images" | default dict) $key | default slice | append (dict "url" $src_url "alt" .Text) | uniq -}}
+{{- .Page.Store.SetInMap "page_images" $key $new -}}
+<img loading="lazy"
+src="{{- $src_url -}}"
+alt="{{ .Text }}"
+{{- with .Title }}
+title="{{ . }}"
+{{- end }}
+/>
