@@ -40,7 +40,7 @@
 
 {{- if .IsHome }}
 {{- $pages = where site.RegularPages "Type" "in" site.Params.mainSections }}
-{{- $pages = where $pages "Params.hiddenInHomeList" "!=" "true"  }}
+{{- $pages = where $pages "Params.hiddenInHomeList" "!=" "true" }}
 {{- end }}
 
 {{- $paginator := .Paginate $pages }}
@@ -49,39 +49,46 @@
 {{- partial "home_info.html" . }}
 {{- end }}
 
-{{- $term := .Data.Term }}
-{{- range $index, $page := $paginator.Pages }}
-
-{{- $class := "post-entry" }}
-
-{{- $user_preferred := or site.Params.disableSpecial1stPost site.Params.homeInfoParams }}
-{{- if (and $.IsHome (eq $paginator.PageNumber 1) (eq $index 0) (not $user_preferred)) }}
-{{- $class = "first-entry" }}
-{{- else if $term }}
-{{- $class = "post-entry tag-entry" }}
-{{- end }}
-
-<article class="{{ $class }}">
-  {{- $isHidden := (site.Params.cover.hidden | default site.Params.cover.hiddenInList) }}
-  {{- partial "cover.html" (dict "cxt" . "IsHome" true "isHidden" $isHidden) }}
-  <header class="entry-header">
-    <h2>
-      {{- .Title }}
-      {{- if .Draft }}<sup><span class="entry-isdraft">&nbsp;&nbsp;[draft]</span></sup>{{- end }}
-    </h2>
-  </header>
-  {{- if (ne (.Param "hideSummary") true) }}
-  <div class="entry-content">
-    <p>{{ .Summary | plainify | htmlUnescape }}{{ if .Truncated }}...{{ end }}</p>
-  </div>
+{{- $isScrollJSenabled := site.Params.assets.enableScrollJS | default false }}
+{{- if $isScrollJSenabled }}
+<div id="entries">
   {{- end }}
-  {{- if not (.Param "hideMeta") }}
-  <footer class="entry-footer">
-    {{- partial "post_meta.html" . -}}
-  </footer>
+  {{- $term := .Data.Term }}
+  {{- range $index, $page := $paginator.Pages }}
+
+  {{- $class := "post-entry" }}
+
+  {{- $user_preferred := or site.Params.disableSpecial1stPost site.Params.homeInfoParams }}
+  {{- if (and $.IsHome (eq $paginator.PageNumber 1) (eq $index 0) (not $user_preferred)) }}
+  {{- $class = "first-entry" }}
+  {{- else if $term }}
+  {{- $class = "post-entry tag-entry" }}
   {{- end }}
-  <a class="entry-link" aria-label="post link to {{ .Title | plainify }}" href="{{ .Permalink }}"></a>
-</article>
+
+  <article class="{{ $class }}">
+    {{- $isHidden := (site.Params.cover.hidden | default site.Params.cover.hiddenInList) }}
+    {{- partial "cover.html" (dict "cxt" . "IsHome" true "isHidden" $isHidden) }}
+    <header class="entry-header">
+      <h2>
+        {{- .Title }}
+        {{- if .Draft }}<sup><span class="entry-isdraft">&nbsp;&nbsp;[draft]</span></sup>{{- end }}
+      </h2>
+    </header>
+    {{- if (ne (.Param "hideSummary") true) }}
+    <div class="entry-content">
+      <p>{{ .Summary | plainify | htmlUnescape }}{{ if .Truncated }}...{{ end }}</p>
+    </div>
+    {{- end }}
+    {{- if not (.Param "hideMeta") }}
+    <footer class="entry-footer">
+      {{- partial "post_meta.html" . -}}
+    </footer>
+    {{- end }}
+    <a class="entry-link" aria-label="post link to {{ .Title | plainify }}" href="{{ .Permalink }}"></a>
+  </article>
+  {{- end }}
+  {{- if $isScrollJSenabled }}
+</div>
 {{- end }}
 
 {{- if gt $paginator.TotalPages 1 }}
@@ -105,6 +112,103 @@
     {{- end }}
   </nav>
 </footer>
+{{- end }}
+
+{{- if $isScrollJSenabled }}
+<script>
+  window.addEventListener('load', () => {
+    // Options: https://infinite-scroll.com/options.html
+    let infScroll = new InfiniteScroll('#entries', {
+      // defaults listed
+
+      path: 'main footer.page-footer a.next',
+      // REQUIRED. Determines the URL for the next page
+      // Set to selector string to use the href of the next page's link
+      // path: '.pagination__next'
+      // Or set with {#}} in place of the page number in the url
+      // path: '/blog/page/{#}}'
+      // or set with function
+      // path: function() {
+      //   return return '/articles/P' + ( ( this.loadCount + 1 ) * 10 );
+      // }
+
+      append: 'main .post-entry',
+      // REQUIRED for appending content
+      // Appends selected elements from loaded page to the container
+
+      checkLastPage: true,
+      // Checks if page has path selector element
+      // Set to string if path is not set as selector string:
+      //   checkLastPage: '.pagination__next'
+
+      prefill: false,
+      // Loads and appends pages on intialization until scroll requirement is met.
+
+      responseBody: 'text',
+      // Sets the method used on the response.
+      // Set to 'json' to load JSON.
+
+      domParseResponse: true,
+      // enables parsing response body into a DOM
+      // disable to load flat text
+
+      fetchOptions: undefined,
+      // sets custom settings for the fetch() request
+      // for setting headers, cors, or POST method
+      // can be set to an object, or a function that returns an object
+
+      outlayer: false,
+      // Integrates Masonry, Isotope or Packery
+      // Appended items will be added to the layout
+
+      scrollThreshold: 50,
+      // Sets the distance between the viewport to scroll area
+      // for scrollThreshold event to be triggered.
+
+      elementScroll: false,
+      // Sets scroller to an element for overflow element scrolling
+
+      loadOnScroll: true,
+      // Loads next page when scroll crosses over scrollThreshold
+
+      history: 'replace',
+      // Changes the browser history and URL.
+      // Set to 'push' to use history.pushState()
+      //    to create new history entries for each page change.
+
+      historyTitle: true,
+      // Updates the window title. Requires history enabled.
+
+      hideNav: 'main footer.page-footer',
+      // Hides navigation element
+
+      status: undefined,
+      // Displays status elements indicating state of page loading:
+      // .infinite-scroll-request, .infinite-scroll-load, .infinite-scroll-error
+      // status: '.page-load-status'
+
+      button: undefined,
+      // Enables a button to load pages on click
+      // button: '.load-next-button'
+
+      onInit: function () {
+        // source code: https://github.com/metafizzy/infinite-scroll/blob/370f7863ab61e6917a53b419649eb51254d8ffeb/js/core.js#L138
+        this.on('append', (resp, path, items) => {
+          const nextLink = document.querySelector('main footer.page-footer a.next');
+          nextLink.setAttribute('href', path);
+        });
+      },
+      // called on initialization
+      // useful for binding events on init
+      // onInit: function() {
+      //   this.on( 'append', function() {...})
+      // }
+
+      debug: false,
+      // Logs events and state changes to the console.
+    });
+  })
+</script>
 {{- end }}
 
 {{- end }}{{/* end profileMode */}}

@@ -89,8 +89,6 @@
 {{- end }}
 {{- end -}}
 
-<script defer src="{{ (resources.Get "js/infinite-scroll.js").RelPermalink}}"></script>
-
 {{- /* Highlight.js */}}
 {{- $isHLJSdisabled := (site.Params.assets.disableHLJS | default .Params.disableHLJS ) }}
 {{- if (and (eq .Kind "page") (ne .Layout "archives") (ne .Layout "search") (not $isHLJSdisabled)) }}
@@ -102,6 +100,17 @@
 {{- $highlight := slice (resources.Get "js/highlight.min.js") | resources.Concat "assets/js/highlight.js" }}
 <script defer crossorigin="anonymous" src="{{ $highlight.RelPermalink }}" onload="hljs.initHighlightingOnLoad();"></script>
 {{- end }}
+{{- end }}
+
+{{- $isScrollJSenabled := site.Params.assets.enableScrollJS | default false }}
+{{- if and $isScrollJSenabled (eq .Kind "home") }}
+    {{- if not site.Params.assets.disableFingerprinting }}
+        {{- $scroll := slice (resources.Get "js/infinite-scroll.pkgd.min.js") | resources.Concat "assets/js/infinite-scroll.js" | fingerprint }}
+        <script defer crossorigin="anonymous" src="{{ $scroll.RelPermalink }}" integrity="{{ $scroll.Data.Integrity }}"></script>
+    {{- else }}
+        {{- $scroll := slice (resources.Get "js/infinite-scroll.pkgd.min.js") | resources.Concat "assets/js/infinite-scroll.js" }}
+        <script defer crossorigin="anonymous" src="{{ $scroll.RelPermalink }}"></script>
+    {{- end }}
 {{- end }}
 
 {{- /* Favicons */}}
