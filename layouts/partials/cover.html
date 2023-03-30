@@ -1,8 +1,8 @@
 {{- with .cxt}} {{/* Apply proper context from dict */}}
 {{- $imgKey := .Page.File.Path }}
-{{- $useFirstImage := and (index (.Page.Store.Get "page_images") $imgKey) .Params.cover.useFirstImageIfNone }}
+{{- $useFirstImage := and (index (.Page.Store.Get "page_images") $imgKey) (.Param "cover.usefirstimageifnone") }}
 {{- /*
-<p>{{(isset .Params.cover "usefirstimageifnone")}} aa{{.Params.cover.useFirstImageIfNone}} bb{{site.Params.cover.useFirstImageIfNone}}</p>
+<p>isset usefirstimageifnone={{(isset .Params.cover "usefirstimageifnone")}}, useFirstImageIfNone={{(.Param "cover.usefirstimageifnone")}}, site useFirstImageIfNone={{site.Params.cover.useFirstImageIfNone}}</p>
 WARN: [All site-level configuration keys are stored as lower case.](https://gohugo.io/functions/isset/)
 [Returns a page parameter, falling back to a site parameter if present.](https://gohugo.io/functions/param/)
 <p>aa--{{index (.Page.Store.Get "page_images") $imgKey}}</p>
