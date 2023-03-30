@@ -88,6 +88,7 @@
   </article>
   {{- end }}
   {{- if $isScrollJSenabled }}
+  <p class="page-load-status">Loading...</p>
 </div>
 {{- end }}
 
@@ -118,7 +119,7 @@
 <script>
   window.addEventListener('load', () => {
     // Options: https://infinite-scroll.com/options.html
-    let infScroll = new InfiniteScroll('#entries', {
+    const infScroll = new InfiniteScroll('#entries', {
       // defaults listed
 
       path: 'main footer.page-footer a.next',
@@ -161,7 +162,7 @@
       // Integrates Masonry, Isotope or Packery
       // Appended items will be added to the layout
 
-      scrollThreshold: 50,
+      scrollThreshold: 100,
       // Sets the distance between the viewport to scroll area
       // for scrollThreshold event to be triggered.
 
@@ -182,7 +183,7 @@
       hideNav: 'main footer.page-footer',
       // Hides navigation element
 
-      status: undefined,
+      status: '.page-load-status',
       // Displays status elements indicating state of page loading:
       // .infinite-scroll-request, .infinite-scroll-load, .infinite-scroll-error
       // status: '.page-load-status'
@@ -192,6 +193,9 @@
       // button: '.load-next-button'
 
       onInit: function () {
+        const nextLink = document.querySelector('main footer.page-footer a.next');
+        nextLink.style.display = 'none';
+
         // source code: https://github.com/metafizzy/infinite-scroll/blob/370f7863ab61e6917a53b419649eb51254d8ffeb/js/core.js#L138
         this.on('append', (resp, path, items) => {
           const nextLink = document.querySelector('main footer.page-footer a.next');
@@ -207,7 +211,7 @@
       debug: false,
       // Logs events and state changes to the console.
     });
-  })
+  });
 </script>
 {{- end }}
 
