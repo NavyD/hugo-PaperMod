@@ -99,6 +99,17 @@
 <script>
     let activeElement;
     let elements;
+
+    let mannualOpenedToc = undefined;
+    const details = document.querySelector('#toc-container details summary');
+    if (details) {
+        details.addEventListener('click', (e) => {
+            // WARN: 由于事件summary在details里面，冒泡事件到达时依然details dom没有被设置open，导致mannualOpenedToc=false
+            // 但当前只需要确认是否点击过即可
+            mannualOpenedToc = document.querySelector('#toc-container details').getAttribute('open') === '';
+        }, false);
+    }
+
     window.addEventListener('DOMContentLoaded', function (event) {
         checkTocPosition();
 
@@ -141,8 +152,16 @@
 
         if (width - main - (toc * 2) - (gap * 4) > 0) {
             document.getElementById("toc-container").classList.add("wide");
+            // always open in side
+            document.querySelector("#toc-container details").setAttribute('open', '');
         } else {
             document.getElementById("toc-container").classList.remove("wide");
+            // {{- if not (.Param "TocOpen") }}
+            // respect if mannual opened
+            if (mannualOpenedToc === undefined) {
+                document.querySelector("#toc-container details").removeAttribute('open');
+            }
+            // {{- end }}
         }
     }
 
@@ -152,7 +171,7 @@
         }
         let rect = element.getBoundingClientRect();
         let win = element.ownerDocument.defaultView;
-        return rect.top + win.pageYOffset;   
+        return rect.top + win.pageYOffset;
     }
 </script>
 {{- end }}

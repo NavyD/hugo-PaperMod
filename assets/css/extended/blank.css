@@ -3,3 +3,16 @@ This is just a placeholder blank stylesheet so as to support adding custom style
 
 Read https://github.com/adityatelange/hugo-PaperMod/wiki/FAQs#bundling-custom-css-with-themes-assets for more info
 */
+
+.post-entry .entry-cover img {
+    max-height: 200px;
+    object-fit: cover;
+}
+
+.toc .active {
+    color: darkorange;
+}
+
+.dark .toc .active {
+    color: lightseagreen;
+}
