@@ -103,7 +103,7 @@
 {{- end }}
 
 {{- $isScrollJSenabled := site.Params.assets.enableScrollJS | default false }}
-{{- if and $isScrollJSenabled (eq .Kind "home") }}
+{{- if and $isScrollJSenabled (in (slice "term" "home") .Kind) }}
     {{- if not site.Params.assets.disableFingerprinting }}
         {{- $scroll := slice (resources.Get "js/infinite-scroll.pkgd.min.js") | resources.Concat "assets/js/infinite-scroll.js" | fingerprint }}
         <script defer crossorigin="anonymous" src="{{ $scroll.RelPermalink }}" integrity="{{ $scroll.Data.Integrity }}"></script>

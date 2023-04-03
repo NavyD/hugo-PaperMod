@@ -50,9 +50,7 @@
 {{- end }}
 
 {{- $isScrollJSenabled := site.Params.assets.enableScrollJS | default false }}
-{{- if $isScrollJSenabled }}
-<div id="entries">
-  {{- end }}
+{{- if $isScrollJSenabled }}<div id="entries">{{- end }}
   {{- $term := .Data.Term }}
   {{- range $index, $page := $paginator.Pages }}
 
@@ -88,9 +86,7 @@
   </article>
   {{- end }}
   {{- if $isScrollJSenabled }}
-  <p class="page-load-status">Loading...</p>
-</div>
-{{- end }}
+</div>{{- end }}
 
 {{- if gt $paginator.TotalPages 1 }}
 <footer class="page-footer">
@@ -183,7 +179,7 @@
       hideNav: 'main footer.page-footer',
       // Hides navigation element
 
-      status: '.page-load-status',
+      // status: '.page-load-status',
       // Displays status elements indicating state of page loading:
       // .infinite-scroll-request, .infinite-scroll-load, .infinite-scroll-error
       // status: '.page-load-status'
