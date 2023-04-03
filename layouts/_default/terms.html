@@ -24,70 +24,72 @@
     {{- end }}
 </ul>
 
-<div class="widget-wrap">
-    {{- with .Site.Data.l10n.widgets.tags.title }}
-    <h3 class="widget-title">
-        {{.}}
-    </h3>
-    {{- end }}
-
-    {{ if not (eq (len $.Site.Taxonomies.tags) 0) }}
-    {{ $fontUnit := "rem" }}
-    {{ $largestFontSize := 2.0 }}
-    {{ $largestFontSize := 2.5 }}
-    {{ $smallestFontSize := 1.0 }}
-    {{ $fontSpread := sub $largestFontSize $smallestFontSize }}
-    {{ $max := add (len (index $.Site.Taxonomies.tags.ByCount 0).Pages) 1 }}
-    {{ $min := len (index $.Site.Taxonomies.tags.ByCount.Reverse 0).Pages }}
-    {{ $spread := sub $max $min }}
-    {{ $fontStep := div $fontSpread $spread }}
-
-    <ul class="term-cloud" style="padding: 5px 15px">
-        {{ range $name, $taxonomy := $.Site.Taxonomies.tags }}
-        {{ $currentTagCount := len $taxonomy.Pages }}
-        {{ $currentFontSize := (add $smallestFontSize (mul (sub $currentTagCount $min) $fontStep) ) }}
-        {{ $count := len $taxonomy.Pages }}
-        {{ $weigth := div (sub (math.Log $count) (math.Log $min)) (sub (math.Log $max) (math.Log $min)) }}
-        {{ $currentFontSize := (add $smallestFontSize (mul (sub $largestFontSize $smallestFontSize) $weigth) ) }}
-        <!--Current font size: {{$currentFontSize}}-->
-        <li class="term-items">
-            <a href="{{ printf " /%s/%s" $.Type $name }}"
-                style="font-size:{{$currentFontSize}}{{$fontUnit}}">{{$name}}</a>
-        </li>
-        {{ end }}
-    </ul>
-    {{ end }}
-</div>
+{{- $isWordCloudJSenabled := site.Params.assets.enableWordCloudJS | default false }}
+{{- if $isWordCloudJSenabled }}
+<div id="tags-cloud"></div>
 
 <script>
-    // ref: [Hugo 사이트에 Weighted Tag Cloud 추가하기](https://notes.harues.com/posts/hugo-weighted-tag-cloud/)
+    function addLinksInCloud() {
+        // loop over all added elements (by class name)
+        document.querySelectorAll('.tag-cloud-item').forEach(function (element) {
+            const text = element.innerHTML;
+            element.innerHTML = `<a href="/tags/${text}" style="color: inherit;">${text}</a>`;
+        });
+    }
+
+    function drawCloud() {
+        const tagsCloud = document.getElementById('tags-cloud');
+        // clear old cloud
+        tagsCloud.removeEventListener('wordcloudstop', addLinksInCloud);
+        tagsCloud.innerHTML = '<canvas></canvas>';
+
+        // get data
+        const canvas = document.getElementsByTagName("canvas")[0];
+        const links = document.querySelectorAll('.terms-tags li a');
+        const data = [];
+        for (let i = 0; i < links.length; i++) {
+            const url = links[i].href;
+            const tagStr = links[i].childNodes[0].textContent.trim();
+            const count = links[i].querySelector('sup').textContent.trim();
+            data.push([tagStr, count, url]);
+        }
+
+        // get cur theme
+        const color = document.body.className.includes('dark') ? 'random-light' : 'random-dark';
+
+        // draw cloud
+        WordCloud(tagsCloud, {
+            list: data,
+            classes: 'tag-cloud-item',
+            weightFactor: 10,
+            clearCanvas: false,
+            color,
+            minSize: 14,
+            // shrinkToFit: true,
+            drawOutOfBound: false,
+            // shape: 'diamond',
+            // minSize: 500,
+            shuffle: false,
+            rotateRatio: 0.5,
+            // wait: 20,
+        });
+
+        // [is it possible to make a wordcloud with links? #133](https://github.com/timdream/wordcloud2.js/issues/133#issuecomment-702555369)
+        tagsCloud.addEventListener('wordcloudstop', addLinksInCloud);
+    }
+
     window.addEventListener('load', () => {
-        const shuffle = array => {
-            let shuffled = [...array],
-                currIndex = array.length,
-                tempValue,
-                randIndex
-
-            while (currIndex) {
-                randIndex = Math.floor(Math.random() * currIndex)
-                currIndex--
-
-                tempValue = shuffled[currIndex]
-                shuffled[currIndex] = shuffled[randIndex]
-                shuffled[randIndex] = tempValue
-            }
-            return shuffled
-        }
-
-        let termClouds = document.querySelectorAll('.term-cloud')
-
-        for (let termCloud of termClouds) {
-            if (termCloud) {
-                let terms = termCloud.querySelectorAll('.term-cloud li')
-                shuffle(terms).forEach(term => term.parentElement.appendChild(term))
-            }
-        }
+        drawCloud();
+        // 必须在theme-toggle最后加载，在footer.html中的theme-toggle事件将在这之后加载，
+        // 使得在重载之前body.classList.dark还没有被配置
+        document.getElementById('theme-toggle').addEventListener('click', drawCloud);
+        // [How to wait for the 'end' of 'resize' event and only then perform an action?](https://stackoverflow.com/a/5490021/8566831)
+        let taskId = undefined;
+        window.addEventListener('resize', () => {
+            clearTimeout(taskId);
+            taskId = setTimeout(drawCloud, 300);
+        });
     });
 </script>
-
+{{- end }}
 {{- end }}{{/* end main */ -}}

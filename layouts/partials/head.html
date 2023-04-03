@@ -113,6 +113,20 @@
     {{- end }}
 {{- end }}
 
+{{- $isWordCloudJSenabled := site.Params.assets.enableWordCloudJS | default false }}
+{{- if and $isWordCloudJSenabled (eq .Kind "taxonomy") }}
+{{- if not site.Params.assets.disableFingerprinting}}
+{{- $wordCloudJS := resources.Get "js/wordcloud2.js" | resources.Minify | slice | resources.Concat "assets/js/wordcloud2.min.js"
+| fingerprint }}
+<script defer crossorigin="anonymous" src="{{ $wordCloudJS.RelPermalink }}"
+    integrity="{{ $wordCloudJS.Data.Integrity }}"></script>
+{{- else }}
+{{- $wordCloudJS := resources.Get "js/wordcloud2.js" | resources.Minify | slice | resources.Concat "assets/js/wordcloud2.min.js"
+}}
+<script defer crossorigin="anonymous" src="{{ $wordCloudJS.RelPermalink }}"></script>
+{{- end }}
+{{- end }}
+
 {{- /* Favicons */}}
 <link rel="icon" href="{{ site.Params.assets.favicon | default "favicon.ico" | absURL }}">
 <link rel="icon" type="image/png" sizes="16x16" href="{{ site.Params.assets.favicon16x16 | default "favicon-16x16.png" | absURL }}">
